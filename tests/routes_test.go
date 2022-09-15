@@ -1,4 +1,4 @@
-package tests_dir
+package tests
 
 import (
 	"AT-BE/handlers"

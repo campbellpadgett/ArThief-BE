@@ -4,6 +4,7 @@ import (
 	han "AT-BE/handlers"
 	"AT-BE/utils"
 	"fmt"
+	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -43,5 +44,5 @@ func main() {
 	router.POST("like", han.ArtworkLike(db))
 	router.POST("likes", han.CheckArtworkLikes(db))
 
-	router.Run("localhost:8080")
+	router.Run(os.Getenv("host"))
 }

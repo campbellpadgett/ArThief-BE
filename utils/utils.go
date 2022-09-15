@@ -69,7 +69,7 @@ func (c *Config) SetUpViper(configFile, path, format string) error {
 	if err := os.Setenv("host", c.Server.Host); err != nil {
 		return errors.Wrap(err, "c.Server.Host: ")
 	}
-	if err := os.Setenv("port", c.Server.Port); err != nil {
+	if err := os.Setenv("PORT", c.Server.Port); err != nil {
 		return errors.Wrap(err, "c.Server.Port: ")
 	}
 
@@ -101,7 +101,7 @@ func (c *Config) SetUpViper(configFile, path, format string) error {
 
 func (c *Config) SetUpRailway() {
 	c.Server.Host = os.Getenv("host")
-	c.Server.Port = os.Getenv("port")
+	c.Server.Port = os.Getenv("PORT")
 
 	c.Database.DBname = os.Getenv("dbname")
 	c.Database.User = os.Getenv("user")
