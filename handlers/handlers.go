@@ -3,10 +3,10 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
-	"AT-BE/env_var"
 	"AT-BE/models"
 	"AT-BE/utils"
 
@@ -150,7 +150,7 @@ func LoginUser(db *gorm.DB) gin.HandlerFunc {
 			ExpiresAt: day_length.Unix(),
 		})
 
-		token, err := claim.SignedString([]byte(env_var.SecretKey))
+		token, err := claim.SignedString([]byte(os.Getenv("secretkey")))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": err,
@@ -174,7 +174,7 @@ func AuthenticateUser(db *gorm.DB) gin.HandlerFunc {
 
 	// used as arg in jwt.ParseWithClaims below
 	keyFunc := func(t *jwt.Token) (interface{}, error) {
-		return []byte(env_var.SecretKey), nil
+		return []byte(os.Getenv("secretkey")), nil
 	}
 
 	return func(c *gin.Context) {

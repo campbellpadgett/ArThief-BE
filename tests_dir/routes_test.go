@@ -1,9 +1,9 @@
 package tests_dir
 
 import (
-	"AT-BE/env_var"
 	"AT-BE/handlers"
 	"AT-BE/models"
+	"AT-BE/utils"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -13,15 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
-
-// type Era struct {
-// 	ID            int
-// 	Era_Name      string
-// 	Last_Modified time.Time
-// }
 
 func setupGetRouter(handler gin.HandlerFunc, route string) *gin.Engine {
 	r := gin.New()
@@ -31,43 +23,10 @@ func setupGetRouter(handler gin.HandlerFunc, route string) *gin.Engine {
 	return r
 }
 
-// func TestSignUp(t *testing.T) {
-// 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", env_var.Host, env_var.User, env_var.Password, env_var.DBname, env_var.Port, env_var.SSLMODE, env_var.TimeZone)
-// 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-// 	if err != nil {
-// 		panic("failed to connect to db")
-// 	}
-
-// 	route := "/sign-up"
-// 	handler := handlers.RegisterUser(db)
-// 	router := setupGetRouter(handler, route)
-// 	writer := httptest.NewRecorder()
-// 	req := httptest.NewRequest(http.MethodPost, route, strings.NewReader("username=cpadgett&email=cpadgett@gmail.com&password=my_Pass11"))
-// 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-// 	router.ServeHTTP(writer, req)
-
-// 	assert.Equal(t, 201, writer.Code)
-
-// 	data, err := ioutil.ReadAll(writer.Body)
-// 	if err != nil {
-// 		t.Errorf("[Error] Unable to read writer.Body: %s", err)
-// 	}
-
-// 	var user models.Users
-// 	if err := json.Unmarshal(data, &user); err != nil {
-// 		t.Errorf("[ERROR] Unable to unmarshal data to user: %s", err)
-// 	}
-
-// 	assert.True(t, true, user.Username == "cpadgett")
-// 	fmt.Printf("%v+", user)
-// }
-
 func TestUsernames(t *testing.T) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", env_var.Host, env_var.User, env_var.Password, env_var.DBname, env_var.Port, env_var.SSLMODE, env_var.TimeZone)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := utils.SetupConfiguration(true)
 	if err != nil {
-		panic("failed to connect to db")
+		t.Errorf("unable to setup db and env variables: %v", err)
 	}
 
 	route := "/usernames"
@@ -95,10 +54,9 @@ func TestUsernames(t *testing.T) {
 }
 
 func TestSearch(t *testing.T) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", env_var.Host, env_var.User, env_var.Password, env_var.DBname, env_var.Port, env_var.SSLMODE, env_var.TimeZone)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := utils.SetupConfiguration(true)
 	if err != nil {
-		panic("failed to connect to db")
+		t.Errorf("unable to setup db and env variables: %v", err)
 	}
 
 	route := "/search/:term"
@@ -129,10 +87,9 @@ func TestSearch(t *testing.T) {
 }
 
 func TestGetEra(t *testing.T) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", env_var.Host, env_var.User, env_var.Password, env_var.DBname, env_var.Port, env_var.SSLMODE, env_var.TimeZone)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := utils.SetupConfiguration(true)
 	if err != nil {
-		panic("failed to connect to db")
+		t.Errorf("unable to setup db and env variables: %v", err)
 	}
 
 	route := "/era/:id"
@@ -158,10 +115,9 @@ func TestGetEra(t *testing.T) {
 }
 
 func TestGetSource(t *testing.T) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", env_var.Host, env_var.User, env_var.Password, env_var.DBname, env_var.Port, env_var.SSLMODE, env_var.TimeZone)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := utils.SetupConfiguration(true)
 	if err != nil {
-		panic("failed to connect to db")
+		t.Errorf("unable to setup db and env variables: %v", err)
 	}
 
 	route := "/source/:id"
@@ -188,10 +144,9 @@ func TestGetSource(t *testing.T) {
 }
 
 func TestGetArtist(t *testing.T) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", env_var.Host, env_var.User, env_var.Password, env_var.DBname, env_var.Port, env_var.SSLMODE, env_var.TimeZone)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := utils.SetupConfiguration(true)
 	if err != nil {
-		panic("failed to connect to db")
+		t.Errorf("unable to setup db and env variables: %v", err)
 	}
 
 	route := "/artist/:id"
@@ -220,10 +175,9 @@ func TestGetArtist(t *testing.T) {
 }
 
 func TestGetArtwork(t *testing.T) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", env_var.Host, env_var.User, env_var.Password, env_var.DBname, env_var.Port, env_var.SSLMODE, env_var.TimeZone)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := utils.SetupConfiguration(true)
 	if err != nil {
-		panic("failed to connect to db")
+		t.Errorf("unable to setup db and env variables: %v", err)
 	}
 
 	route := "/artwork/:id"
@@ -252,10 +206,9 @@ func TestGetArtwork(t *testing.T) {
 }
 
 func TestGetArtworks(t *testing.T) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", env_var.Host, env_var.User, env_var.Password, env_var.DBname, env_var.Port, env_var.SSLMODE, env_var.TimeZone)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := utils.SetupConfiguration(true)
 	if err != nil {
-		panic("failed to connect to db")
+		t.Errorf("unable to setup db and env variables: %v", err)
 	}
 
 	route := "/artworks/"

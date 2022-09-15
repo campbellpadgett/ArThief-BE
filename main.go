@@ -1,17 +1,12 @@
 package main
 
 import (
-	"errors"
-	"fmt"
-	"os"
-
 	han "AT-BE/handlers"
 	"AT-BE/utils"
+	"fmt"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 func main() {
@@ -22,28 +17,10 @@ func main() {
 	c.AllowAllOrigins = true
 	router.Use(cors.New(c))
 
-	var config utils.Config
-
-	// checking if yaml file with config declartions exists, otherwise, use the env varibale provided by railway
-	if _, err := os.Stat("config.yaml"); err == nil {
-		config.SetUpViper("config", ".", "yaml")
-	} else if errors.Is(err, os.ErrNotExist) {
-		config.SetUpRailway()
-	}
-
-	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
-		config.Server.Host,
-		config.Database.User,
-		config.Database.Password,
-		config.Database.DBname,
-		config.Database.DBport,
-		config.Database.SSLMODE,
-		config.Database.TimeZone,
-	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := utils.SetupConfiguration(false)
 	if err != nil {
-		panic("failed to connect to db")
+		e := fmt.Errorf("failed to connect to db %v", err)
+		panic(e)
 	}
 
 	// fmt.Println("--migrating Users, ArtworkLikes, Curations, CurationLikes--")
