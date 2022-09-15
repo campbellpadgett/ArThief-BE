@@ -2,6 +2,7 @@ package main
 
 import (
 	han "AT-BE/handlers"
+	"AT-BE/models"
 	"AT-BE/utils"
 	"fmt"
 	"os"
@@ -24,8 +25,8 @@ func main() {
 		panic(e)
 	}
 
-	// fmt.Println("--migrating Users, ArtworkLikes, Curations, CurationLikes--")
-	// db.AutoMigrate(&models.Users{}, &models.ArtworkLikes{}, &models.Curations{}, &models.CurationLikes{}, &models.CurationArtwork{})
+	fmt.Println("--migrating Users, ArtworkLikes, Curations, CurationLikes--")
+	db.AutoMigrate(&models.Users{}, &models.ArtworkLikes{}, &models.Curations{}, &models.CurationLikes{}, &models.CurationArtwork{})
 
 	router.GET("/artwork/:id", han.GetArtwork(db))
 	router.GET("/artworks/", han.GetArtworks(db))
