@@ -1,0 +1,21 @@
+server:
+  port: 8000
+  host: 'localhost'
+
+database:
+  dbname: 'dbname'
+  port: 8000
+  user: 'user'
+  password: 'password'
+  sslmode: 'sslmode'
+  timezone: 'timezone'
+
+secretkey: 'secretkey'
+
+
+
+
+
+
+
+
