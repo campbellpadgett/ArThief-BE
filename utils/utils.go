@@ -66,7 +66,7 @@ func (c *Config) SetUpViper(configFile, path, format string) error {
 		return errors.Wrap(err, "Unable to unmarshal env variables")
 	}
 
-	if err := os.Setenv("host", c.Server.Host); err != nil {
+	if err := os.Setenv("HOST", c.Server.Host); err != nil {
 		return errors.Wrap(err, "c.Server.Host: ")
 	}
 	if err := os.Setenv("PORT", c.Server.Port); err != nil {
@@ -100,7 +100,7 @@ func (c *Config) SetUpViper(configFile, path, format string) error {
 }
 
 func (c *Config) SetUpRailway() {
-	c.Server.Host = os.Getenv("host")
+	c.Server.Host = os.Getenv("HOST")
 	c.Server.Port = os.Getenv("PORT")
 
 	c.Database.DBname = os.Getenv("dbname")
