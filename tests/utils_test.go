@@ -29,7 +29,7 @@ func TestViperSetup(t *testing.T) {
 
 func TestRailwaySetup(t *testing.T) {
 	os.Setenv("host", "__host__")
-	os.Setenv("port", "__port__")
+	os.Setenv("PORT", "__port__")
 
 	os.Setenv("dbname", "__dbname__")
 	os.Setenv("user", "__user__")
@@ -37,6 +37,7 @@ func TestRailwaySetup(t *testing.T) {
 	os.Setenv("timezone", "__timezone__")
 	os.Setenv("sslmode", "__sslmode__")
 	os.Setenv("dbport", "__dbport__")
+	os.Setenv("dbhost", "__dbhost__")
 
 	os.Setenv("secretkey", "__secretkey__")
 
@@ -51,6 +52,7 @@ func TestRailwaySetup(t *testing.T) {
 	c.SetUpRailway()
 
 	assert.True(t, c.Database.DBname == "__dbname__")
+	assert.True(t, c.Database.DBhost == "__dbhost__")
 	assert.True(t, c.Database.Password == "__password__")
 	assert.True(t, c.Server.Port == "__port__")
 	assert.True(t, c.SecretKey == "__secretkey__")

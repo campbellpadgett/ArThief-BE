@@ -41,6 +41,7 @@ type DatabaseConfig struct {
 	TimeZone string
 	SSLMODE  string
 	DBport   string
+	DBhost   string
 }
 
 type Config struct {
@@ -91,6 +92,9 @@ func (c *Config) SetUpViper(configFile, path, format string) error {
 	if err := os.Setenv("dbport", c.Database.DBport); err != nil {
 		return errors.Wrap(err, "c.Database.DBport: ")
 	}
+	if err := os.Setenv("dbhost", c.Database.DBhost); err != nil {
+		return errors.Wrap(err, "c.Database.DBhost: ")
+	}
 
 	if err := os.Setenv("secretkey", c.SecretKey); err != nil {
 		return errors.Wrap(err, "c.SecretKey: ")
@@ -104,6 +108,7 @@ func (c *Config) SetUpRailway() {
 	c.Server.Port = os.Getenv("PORT")
 
 	c.Database.DBname = os.Getenv("dbname")
+	c.Database.DBhost = os.Getenv("dbhost")
 	c.Database.User = os.Getenv("user")
 	c.Database.Password = os.Getenv("password")
 	c.Database.TimeZone = os.Getenv("timezone")
@@ -127,6 +132,8 @@ func (c *Config) CreateDSN() (string, error) {
 		return "", errors.New("c.Database.DBname is empty")
 	case c.Database.DBport == "":
 		return "", errors.New("c.Database.DBport is empty")
+	case c.Database.DBhost == "":
+		return "", errors.New("c.Database.DBhost is empty")
 	case c.Database.SSLMODE == "":
 		return "", errors.New("c.Database.SSLMODE is empty")
 	case c.Database.TimeZone == "":
@@ -135,7 +142,7 @@ func (c *Config) CreateDSN() (string, error) {
 
 	return fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
-		c.Server.Host,
+		c.Database.DBhost,
 		c.Database.User,
 		c.Database.Password,
 		c.Database.DBname,

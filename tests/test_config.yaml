@@ -4,6 +4,7 @@ server:
 
 database:
   dbname: 'dbname'
+  dbhost: 'dbhost'
   port: 8000
   user: 'user'
   password: 'password'
