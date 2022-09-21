@@ -58,7 +58,7 @@ func (Artist) TableName() string {
 type Source struct {
 	ID            int       `json:"id"`
 	Source_Name   string    `json:"source_name"`
-	Abbreviation  string    `json:"abbreviation"`
+	Abriviation   string    `json:"abriviation"`
 	Last_Modified time.Time `json:"last_modified"`
 }
 

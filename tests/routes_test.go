@@ -140,7 +140,7 @@ func TestGetSource(t *testing.T) {
 	}
 
 	assert.Equal(t, "Wilson L. Mead Fund", source.Source_Name)
-	assert.Equal(t, "CHI", source.Abbreviation)
+	assert.Equal(t, "CHI", source.Abriviation)
 }
 
 func TestGetArtist(t *testing.T) {
