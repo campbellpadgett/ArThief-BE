@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -246,7 +248,7 @@ func CheckArtworkLikes(db *gorm.DB) gin.HandlerFunc {
 
 		var reqData models.LikeReqData
 
-		err := reqData.ProcessLikeReq(c.Request)
+		err := reqData.ProcessReq(c.Request)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": err.Error(),
@@ -297,7 +299,7 @@ func ArtworkLike(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var reqData models.LikeReqData
-		err := reqData.ProcessLikeReq(c.Request)
+		err := reqData.ProcessReq(c.Request)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": err.Error(),
@@ -352,5 +354,33 @@ func ArtworkLike(db *gorm.DB) gin.HandlerFunc {
 				c.JSON(http.StatusCreated, newArtworkLike)
 			}
 		}
+	}
+}
+
+func Users(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		id, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": errors.Wrap(err, "unable to read request.body").Error(),
+			})
+			panic(err)
+		}
+
+		var ID string
+		if err := json.Unmarshal(id, &ID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message":  errors.Wrap(err, "unable to unmarshal data").Error(),
+				"data":     id,
+				"ID":       ID,
+				"req body": fmt.Sprintf("%v", c.Request.Body),
+			})
+			panic(err)
+		}
+
+		var user models.Users
+		db.Where("id = ?", ID).Find(&user)
+		c.JSON(http.StatusOK, user)
 	}
 }

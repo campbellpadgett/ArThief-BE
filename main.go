@@ -40,6 +40,7 @@ func main() {
 	router.POST("/sign-up", han.RegisterUser(db))
 	router.POST("/login", han.LoginUser(db))
 	router.GET("/user", han.AuthenticateUser(db))
+	router.POST("/users", han.Users(db))
 	router.POST("/logout", han.Logout(db))
 
 	router.POST("like", han.ArtworkLike(db))

@@ -149,7 +149,7 @@ func (d *LikeReqData) ToString() string {
 }
 
 // Takes in request and processes the body for an instance of LikeReqData
-func (d *LikeReqData) ProcessLikeReq(req *http.Request) error {
+func (d *LikeReqData) ProcessReq(req *http.Request) error {
 	data, ioErr := ioutil.ReadAll(req.Body)
 	if ioErr != nil {
 		return ioErr
