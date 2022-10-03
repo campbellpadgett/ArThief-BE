@@ -6,6 +6,7 @@ import (
 	"AT-BE/utils"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -21,9 +22,19 @@ func main() {
 	}
 
 	// cors middleware is set to all origins for testing, prod is set to FE host
-	c := cors.DefaultConfig()
-	c.AllowOrigins = []string{origins}
-	router.Use(cors.New(c))
+	// c := cors.DefaultConfig()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{origins},
+		AllowMethods:     []string{"PUT", "POST", "GET", "OPTIONS", "DELETE"},
+		AllowHeaders:     []string{"Origin"},
+		AllowAllOrigins:  false,
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
+	// c.AllowOrigins = []string{origins}
+	// router.Use(cors.New(c))
 
 	fmt.Println("--migrating Users, ArtworkLikes, Curations, CurationLikes--")
 	db.AutoMigrate(&models.Users{}, &models.ArtworkLikes{}, &models.Curations{}, &models.CurationLikes{}, &models.CurationArtwork{})
