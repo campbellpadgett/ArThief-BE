@@ -7,11 +7,25 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
+
+func corsMiddleware(origins string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", origins)
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
 
 func main() {
 	router := gin.Default()
@@ -26,15 +40,16 @@ func main() {
 	// c := cors.DefaultConfig()
 
 	log.Printf("Origins: %s", origins)
+	router.Use(corsMiddleware(origins))
 
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{origins},
-		AllowMethods:     []string{"PUT", "POST", "GET", "OPTIONS", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Host"},
-		AllowAllOrigins:  false,
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
+	// router.Use(cors.New(cors.Config{
+	// 	AllowOrigins:     []string{origins},
+	// 	AllowMethods:     []string{"PUT", "POST", "GET", "OPTIONS"},
+	// 	AllowHeaders:     []string{"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"},
+	// 	AllowAllOrigins:  false,
+	// 	AllowCredentials: true,
+	// 	MaxAge:           12 * time.Hour,
+	// }))
 
 	// c.AllowOrigins = []string{origins}
 	// router.Use(cors.New(c))
