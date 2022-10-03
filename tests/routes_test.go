@@ -24,7 +24,7 @@ func setupGetRouter(handler gin.HandlerFunc, route string) *gin.Engine {
 }
 
 func TestUsernames(t *testing.T) {
-	db, err := utils.SetupConfiguration(true)
+	db, _, err := utils.SetupConfiguration(true)
 	if err != nil {
 		t.Errorf("unable to setup db and env variables: %v", err)
 	}
@@ -54,7 +54,7 @@ func TestUsernames(t *testing.T) {
 }
 
 func TestSearch(t *testing.T) {
-	db, err := utils.SetupConfiguration(true)
+	db, _, err := utils.SetupConfiguration(true)
 	if err != nil {
 		t.Errorf("unable to setup db and env variables: %v", err)
 	}
@@ -87,7 +87,7 @@ func TestSearch(t *testing.T) {
 }
 
 func TestGetEra(t *testing.T) {
-	db, err := utils.SetupConfiguration(true)
+	db, _, err := utils.SetupConfiguration(true)
 	if err != nil {
 		t.Errorf("unable to setup db and env variables: %v", err)
 	}
@@ -115,7 +115,7 @@ func TestGetEra(t *testing.T) {
 }
 
 func TestGetSource(t *testing.T) {
-	db, err := utils.SetupConfiguration(true)
+	db, _, err := utils.SetupConfiguration(true)
 	if err != nil {
 		t.Errorf("unable to setup db and env variables: %v", err)
 	}
@@ -144,7 +144,7 @@ func TestGetSource(t *testing.T) {
 }
 
 func TestGetArtist(t *testing.T) {
-	db, err := utils.SetupConfiguration(true)
+	db, _, err := utils.SetupConfiguration(true)
 	if err != nil {
 		t.Errorf("unable to setup db and env variables: %v", err)
 	}
@@ -175,7 +175,7 @@ func TestGetArtist(t *testing.T) {
 }
 
 func TestGetArtwork(t *testing.T) {
-	db, err := utils.SetupConfiguration(true)
+	db, _, err := utils.SetupConfiguration(true)
 	if err != nil {
 		t.Errorf("unable to setup db and env variables: %v", err)
 	}
@@ -206,7 +206,7 @@ func TestGetArtwork(t *testing.T) {
 }
 
 func TestGetArtworks(t *testing.T) {
-	db, err := utils.SetupConfiguration(true)
+	db, _, err := utils.SetupConfiguration(true)
 	if err != nil {
 		t.Errorf("unable to setup db and env variables: %v", err)
 	}

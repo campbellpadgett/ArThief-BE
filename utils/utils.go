@@ -48,6 +48,7 @@ type Config struct {
 	Server    ServerConfig
 	Database  DatabaseConfig
 	SecretKey string
+	Origins   string
 }
 
 func (c *Config) SetUpViper(configFile, path, format string) error {
@@ -100,6 +101,10 @@ func (c *Config) SetUpViper(configFile, path, format string) error {
 		return errors.Wrap(err, "c.SecretKey: ")
 	}
 
+	if err := os.Setenv("origins", c.SecretKey); err != nil {
+		return errors.Wrap(err, "c.SecretKey: ")
+	}
+
 	return nil
 }
 
@@ -115,6 +120,7 @@ func (c *Config) SetUpRailway() {
 	c.Database.SSLMODE = os.Getenv("sslmode")
 	c.Database.DBport = os.Getenv("dbport")
 
+	c.Origins = os.Getenv("origins")
 	c.SecretKey = os.Getenv("secretkey")
 }
 
@@ -153,7 +159,7 @@ func (c *Config) CreateDSN() (string, error) {
 }
 
 // sets up database and env variables
-func SetupConfiguration(test bool) (*gorm.DB, error) {
+func SetupConfiguration(test bool) (*gorm.DB, string, error) {
 	var configFile, path string
 	if test == true {
 		configFile, path = "../config.yaml", "../"
@@ -171,13 +177,13 @@ func SetupConfiguration(test bool) (*gorm.DB, error) {
 
 	dsn, err := config.CreateDSN()
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return db, nil
+	return db, config.Origins, nil
 }

@@ -25,6 +25,7 @@ func TestViperSetup(t *testing.T) {
 	assert.True(t, c.SecretKey == "secretkey")
 	assert.True(t, c.Server.Port == "8000")
 	assert.True(t, c.Database.Password == "password")
+	assert.True(t, c.Origins == "*")
 }
 
 func TestRailwaySetup(t *testing.T) {
@@ -40,6 +41,7 @@ func TestRailwaySetup(t *testing.T) {
 	os.Setenv("dbhost", "__dbhost__")
 
 	os.Setenv("secretkey", "__secretkey__")
+	os.Setenv("origins", "__origins__")
 
 	s := utils.ServerConfig{}
 	d := utils.DatabaseConfig{}
@@ -56,4 +58,5 @@ func TestRailwaySetup(t *testing.T) {
 	assert.True(t, c.Database.Password == "__password__")
 	assert.True(t, c.Server.Port == "__port__")
 	assert.True(t, c.SecretKey == "__secretkey__")
+	assert.True(t, c.Origins == "__origins__")
 }

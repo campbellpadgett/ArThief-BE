@@ -12,6 +12,7 @@ database:
   timezone: 'timezone'
 
 secretkey: 'secretkey'
+origins: '*'
 
 
 

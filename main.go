@@ -14,16 +14,16 @@ import (
 func main() {
 	router := gin.Default()
 
-	// cors middleware is set to all origins for testing
-	c := cors.DefaultConfig()
-	c.AllowAllOrigins = true
-	router.Use(cors.New(c))
-
-	db, err := utils.SetupConfiguration(false)
+	db, origins, err := utils.SetupConfiguration(false)
 	if err != nil {
 		e := fmt.Errorf("failed to connect to db %v", err)
 		panic(e)
 	}
+
+	// cors middleware is set to all origins for testing, prod is set to FE host
+	c := cors.DefaultConfig()
+	c.AllowOrigins = []string{origins}
+	router.Use(cors.New(c))
 
 	fmt.Println("--migrating Users, ArtworkLikes, Curations, CurationLikes--")
 	db.AutoMigrate(&models.Users{}, &models.ArtworkLikes{}, &models.Curations{}, &models.CurationLikes{}, &models.CurationArtwork{})

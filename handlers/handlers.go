@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -44,6 +45,8 @@ func GetArtwork(db *gorm.DB) gin.HandlerFunc {
 		id := c.Param("id")
 		var artwork models.Artwork
 		db.Where("id = ?", id).Find(&artwork)
+
+		log.Printf("artwork response, %v", artwork)
 
 		c.JSON(http.StatusOK, artwork)
 	}
