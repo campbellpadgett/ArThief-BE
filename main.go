@@ -5,6 +5,7 @@ import (
 	"AT-BE/models"
 	"AT-BE/utils"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -24,10 +25,12 @@ func main() {
 	// cors middleware is set to all origins for testing, prod is set to FE host
 	// c := cors.DefaultConfig()
 
+	log.Printf("Origins: %s", origins)
+
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{origins},
 		AllowMethods:     []string{"PUT", "POST", "GET", "OPTIONS", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Access-Control-Allow-Headers", "Content-Type"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Host"},
 		AllowAllOrigins:  false,
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
