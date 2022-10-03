@@ -66,7 +66,7 @@ func GetArtworks(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		limit, err := strconv.Atoi(c.Query("limit"))
 		if err != nil {
-			panic(err)
+			log.Print(err)
 		}
 		last_id := c.Query("last_id")
 
@@ -95,14 +95,14 @@ func RegisterUser(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": err.Error(),
 			})
-			panic("[Error] Unable to parse form data")
+			log.Print("[Error] Unable to parse form data")
 		}
 
 		pwd := reqData["password"]
 		password, pwdErr := bcrypt.GenerateFromPassword([]byte(pwd), 14)
 		if pwdErr != nil {
 			fmt.Printf("[ERROR] %v", pwdErr)
-			panic("Password could not be encrypted")
+			log.Print("Password could not be encrypted")
 		}
 
 		user := models.Users{
@@ -127,7 +127,7 @@ func LoginUser(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": parseErr.Error(),
 			})
-			panic("[Error] Unable to parse form data")
+			log.Print("[Error] Unable to parse form data")
 		}
 
 		var user models.Users
@@ -137,7 +137,7 @@ func LoginUser(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{
 				"message": "user could not be found through username",
 			})
-			panic("user could not be found through username")
+			log.Print("user could not be found through username")
 		}
 
 		pwdErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pwd))
@@ -145,7 +145,7 @@ func LoginUser(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"password error": pwdErr.Error(),
 			})
-			panic(pwdErr)
+			log.Print(pwdErr)
 		}
 
 		stringID := strconv.Itoa(int(user.ID))
@@ -160,7 +160,7 @@ func LoginUser(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": err,
 			})
-			panic(err)
+			log.Print(err)
 		}
 
 		c.SetCookie("jwt", token, 60*60*24, "/", "localhost", false, true)
@@ -256,7 +256,7 @@ func CheckArtworkLikes(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": err.Error(),
 			})
-			panic(err)
+			log.Print(err)
 		}
 
 		iID, aErr := strconv.Atoi(reqData.ItemID)
@@ -267,7 +267,7 @@ func CheckArtworkLikes(db *gorm.DB) gin.HandlerFunc {
 				"ArtworkID":       reqData.ItemID,
 				"post-conversion": iID,
 			})
-			panic(aErr)
+			log.Print(aErr)
 		}
 
 		var artworkLike models.ArtworkLikes
@@ -276,7 +276,7 @@ func CheckArtworkLikes(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": err.Error(),
 			})
-			panic(err)
+			log.Print(err)
 		}
 
 		if exists {
@@ -318,7 +318,7 @@ func ArtworkLike(db *gorm.DB) gin.HandlerFunc {
 				"post-conversion": iID,
 			})
 
-			panic(aErr)
+			log.Print(aErr)
 		}
 
 		var artworkLike models.ArtworkLikes
@@ -328,7 +328,7 @@ func ArtworkLike(db *gorm.DB) gin.HandlerFunc {
 				"message": err.Error(),
 			})
 
-			panic(err)
+			log.Print(err)
 		}
 
 		if exists {
@@ -352,7 +352,7 @@ func ArtworkLike(db *gorm.DB) gin.HandlerFunc {
 					"message": result.Error,
 				})
 
-				panic(result.Error)
+				log.Print(result.Error)
 			} else {
 				c.JSON(http.StatusCreated, newArtworkLike)
 			}
@@ -368,7 +368,7 @@ func Users(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": errors.Wrap(err, "unable to read request.body").Error(),
 			})
-			panic(err)
+			log.Print(err)
 		}
 
 		var ID string
@@ -379,7 +379,7 @@ func Users(db *gorm.DB) gin.HandlerFunc {
 				"ID":       ID,
 				"req body": fmt.Sprintf("%v", c.Request.Body),
 			})
-			panic(err)
+			log.Print(err)
 		}
 
 		var user models.Users
