@@ -2,30 +2,14 @@ package main
 
 import (
 	han "AT-BE/handlers"
+	m "AT-BE/middleware"
 	"AT-BE/models"
 	"AT-BE/utils"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
 )
-
-func corsMiddleware(origins string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", origins)
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-
-		c.Next()
-	}
-}
 
 func main() {
 	router := gin.Default()
@@ -36,23 +20,7 @@ func main() {
 		panic(e)
 	}
 
-	// cors middleware is set to all origins for testing, prod is set to FE host
-	// c := cors.DefaultConfig()
-
-	log.Printf("Origins: %s", origins)
-	router.Use(corsMiddleware(origins))
-
-	// router.Use(cors.New(cors.Config{
-	// 	AllowOrigins:     []string{origins},
-	// 	AllowMethods:     []string{"PUT", "POST", "GET", "OPTIONS"},
-	// 	AllowHeaders:     []string{"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"},
-	// 	AllowAllOrigins:  false,
-	// 	AllowCredentials: true,
-	// 	MaxAge:           12 * time.Hour,
-	// }))
-
-	// c.AllowOrigins = []string{origins}
-	// router.Use(cors.New(c))
+	router.Use(m.CorsMiddleware(origins))
 
 	fmt.Println("--migrating Users, ArtworkLikes, Curations, CurationLikes--")
 	db.AutoMigrate(&models.Users{}, &models.ArtworkLikes{}, &models.Curations{}, &models.CurationLikes{}, &models.CurationArtwork{})
@@ -74,6 +42,8 @@ func main() {
 
 	router.POST("like", han.ArtworkLike(db))
 	router.POST("likes", han.CheckArtworkLikes(db))
+
+	router.GET("likedArtwork", m.Paginate, han.LikedArtwork(db))
 
 	d := fmt.Sprint(os.Getenv("HOST") + ":" + os.Getenv("PORT"))
 	router.Run(d)
