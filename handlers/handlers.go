@@ -458,13 +458,11 @@ func LikedArtworkHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// need to figure out the proper SQL query, conside just writting a query directly in the BE code
-
-		var likedArtwork []models.Artwork
-		db.Table("artwork_migrate_artwork").Select(
-			"artwork_migrate_artwork.*").Joins(
-			"left join artwork_likes as al on al.artwork_id = artwork_migrate_artwork.id").Where(
-			"al.user_id = ?", userID).Scan(&likedArtwork)
+		var likedArtwork []models.Searches
+		db.Table("searches").Select(
+			"\"searches\".*").Joins(
+			"left join artwork_likes as al on al.artwork_id = \"searches\".\"ID\"").Where(
+			"al.user_id = ?", userID).Offset(pageInt.(int)).Scan(&likedArtwork)
 
 		if len(likedArtwork) == 0 {
 			c.JSON(http.StatusOK, gin.H{

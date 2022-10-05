@@ -63,10 +63,10 @@ func TestRailwaySetup(t *testing.T) {
 }
 
 func TestNextPage(t *testing.T) {
-	var a models.Artwork
+	var s models.Searches
 
 	l := models.LikedList{
-		LikedArtwork: []models.Artwork{a},
+		LikedArtwork: []models.Searches{s},
 		NextPage:     10,
 	}
 
