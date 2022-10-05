@@ -147,7 +147,7 @@ func LoginUser(db *gorm.DB) gin.HandlerFunc {
 		un, pwd := reqData["username"], reqData["password"]
 		db.Find(&user, "username = ?", un)
 		if user.Username == "" {
-			c.Writer.Header().Add("error", "true")
+			c.Writer.Header().Add("error", "User could not be found through username")
 			c.JSON(http.StatusNotFound, gin.H{
 				"message": "user could not be found through username",
 			})
@@ -158,6 +158,7 @@ func LoginUser(db *gorm.DB) gin.HandlerFunc {
 
 		pwdErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pwd))
 		if pwdErr != nil {
+			c.Writer.Header().Add("error", "User could not be found through password")
 			c.JSON(http.StatusBadRequest, gin.H{
 				"password error": pwdErr.Error(),
 			})
@@ -430,5 +431,57 @@ func Users(db *gorm.DB) gin.HandlerFunc {
 		var user models.Users
 		db.Where("id = ?", ID).Find(&user)
 		c.JSON(http.StatusOK, user)
+	}
+}
+
+func LikedArtworkHandler(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pageInt, exist := c.Get("pageInt")
+		if !exist {
+			msg, _ := c.Get("pageError")
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": msg.(error).Error(),
+			})
+			log.Print(msg)
+
+			return
+		}
+
+		userID, exist := c.Get("userID")
+		if !exist {
+			msg, _ := c.Get("userError")
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": msg.(error).Error(),
+			})
+			log.Print(msg)
+
+			return
+		}
+
+		// need to figure out the proper SQL query, conside just writting a query directly in the BE code
+
+		var likedArtwork []models.Artwork
+		db.Table("artwork_migrate_artwork").Select(
+			"artwork_migrate_artwork.*").Joins(
+			"left join artwork_likes as al on al.artwork_id = artwork_migrate_artwork.id").Where(
+			"al.user_id = ?", userID).Scan(&likedArtwork)
+
+		if len(likedArtwork) == 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"message":      "no liked artwork",
+				"artworkLikes": 0,
+			})
+			log.Print("no liked artwork")
+
+			return
+		}
+
+		likedList := models.LikedList{
+			LikedArtwork: likedArtwork,
+			NextPage:     pageInt.(int),
+		}
+
+		likedList.AddNextPage(1)
+		c.JSON(http.StatusOK, likedList)
 	}
 }

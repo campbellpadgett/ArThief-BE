@@ -43,6 +43,8 @@ func main() {
 	router.POST("like", han.ArtworkLike(db))
 	router.POST("likes", han.CheckArtworkLikes(db))
 
+	router.GET("/likedArtwork", m.Paginate, han.LikedArtworkHandler(db))
+
 	d := fmt.Sprint(os.Getenv("HOST") + ":" + os.Getenv("PORT"))
 	router.Run(d)
 }

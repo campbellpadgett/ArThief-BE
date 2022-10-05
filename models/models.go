@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"gorm.io/gorm"
 )
 
@@ -160,4 +162,24 @@ func (d *LikeReqData) ProcessReq(req *http.Request) error {
 	}
 
 	return nil
+}
+
+type LikedList struct {
+	LikedArtwork []Artwork `json:"liked_artwork"`
+	NextPage     int       `json:"next_page_id"`
+}
+
+func (ll *LikedList) AddNextPage(amt int) (int, error) {
+	if amt <= 0 {
+		return 0, errors.New("amt param cannot be less than or equal to 0")
+	}
+
+	oldValue := ll.NextPage
+	ll.NextPage += amt
+
+	if ll.NextPage == oldValue {
+		return 0, errors.Wrapf(errors.New("NextPage did not increase"), "old: %v, new: %v", oldValue, ll.NextPage)
+	}
+
+	return ll.NextPage, nil
 }

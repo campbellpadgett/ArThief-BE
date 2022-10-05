@@ -24,19 +24,30 @@ func CorsMiddleware(origins string) gin.HandlerFunc {
 }
 
 func Paginate(c *gin.Context) {
-	page, ok := c.Params.Get("page")
-	if !ok {
-		c.Set("error", errors.New("pageID could not be retrieved"))
+	page := c.Request.URL.Query().Get("page")
+	// Get("page")
+	if page == "" {
+		c.Set("pageError", errors.New("pageID could not be retrieved"))
 	}
 
-	if page != "" {
-		pageInt, err := strconv.Atoi(page)
-		if err != nil {
-			c.Set("error", err.Error())
-		}
-
-		c.Set("pageInt", pageInt)
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		c.Set("pageError", err.Error())
 	}
+
+	if pageInt >= 21 {
+		c.Set("pageError", errors.New("pageInt is too high"))
+	}
+
+	c.Set("pageInt", pageInt)
+
+	userID := c.Request.URL.Query().Get("userID")
+	// Get("userID")
+	if userID == "" {
+		c.Set("userError", errors.New("userID could not be retrieved"))
+	}
+
+	c.Set("userID", userID)
 
 	c.Next()
 }

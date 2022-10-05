@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"AT-BE/models"
 	"AT-BE/utils"
 	"os"
 	"testing"
@@ -59,4 +60,25 @@ func TestRailwaySetup(t *testing.T) {
 	assert.True(t, c.Server.Port == "__port__")
 	assert.True(t, c.SecretKey == "__secretkey__")
 	assert.True(t, c.Origins == "__origins__")
+}
+
+func TestNextPage(t *testing.T) {
+	var a models.Artwork
+
+	l := models.LikedList{
+		LikedArtwork: []models.Artwork{a},
+		NextPage:     10,
+	}
+
+	assert.True(t, l.NextPage == 10)
+
+	newNum, err := l.AddNextPage(10)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.True(t, newNum == 20)
+
+	_, err = l.AddNextPage(0)
+	assert.True(t, err.Error() == "amt param cannot be less than or equal to 0")
 }
