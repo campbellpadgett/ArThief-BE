@@ -167,6 +167,7 @@ func (d *LikeReqData) ProcessReq(req *http.Request) error {
 type LikedList struct {
 	LikedArtwork []Searches `json:"liked_artwork"`
 	NextPage     int        `json:"page"`
+	Count        int64      `json:"count"`
 }
 
 func (ll *LikedList) AddNextPage(amt int) (int, error) {

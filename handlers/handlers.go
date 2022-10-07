@@ -458,6 +458,9 @@ func LikedArtworkHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
+		var count int64
+		db.Table("artwork_likes").Where("artwork_likes.like = true and user_id = ?", userID.(string)).Count(&count)
+
 		var likedArtwork []models.Searches
 		db.Table("searches").Select(
 			"\"searches\".*").Joins(
@@ -477,6 +480,7 @@ func LikedArtworkHandler(db *gorm.DB) gin.HandlerFunc {
 		likedList := models.LikedList{
 			LikedArtwork: likedArtwork,
 			NextPage:     pageInt.(int),
+			Count:        count,
 		}
 
 		likedList.AddNextPage(10)
