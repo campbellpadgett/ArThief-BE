@@ -459,7 +459,7 @@ func LikedArtworkHandler(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		var count int64
-		db.Table("artwork_likes").Where("artwork_likes.like = true and user_id = ?", userID.(string)).Count(&count)
+		db.Table("artwork_likes").Where("artwork_likes.like = true and user_id = ?", userID.(string)).Offset(pageInt.(int)).Count(&count)
 
 		var likedArtwork []models.Searches
 		db.Table("searches").Select(
