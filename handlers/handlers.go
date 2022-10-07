@@ -462,7 +462,7 @@ func LikedArtworkHandler(db *gorm.DB) gin.HandlerFunc {
 		db.Table("searches").Select(
 			"\"searches\".*").Joins(
 			"left join artwork_likes as al on al.artwork_id = \"searches\".\"ID\"").Where(
-			"al.user_id = ?", userID).Offset(pageInt.(int)).Scan(&likedArtwork)
+			"al.user_id = ?", userID.(string)).Offset(pageInt.(int)).Scan(&likedArtwork)
 
 		if len(likedArtwork) == 0 {
 			c.JSON(http.StatusOK, gin.H{
@@ -479,7 +479,7 @@ func LikedArtworkHandler(db *gorm.DB) gin.HandlerFunc {
 			NextPage:     pageInt.(int),
 		}
 
-		likedList.AddNextPage(1)
+		likedList.AddNextPage(10)
 		c.JSON(http.StatusOK, likedList)
 	}
 }
