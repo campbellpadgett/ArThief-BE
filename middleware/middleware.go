@@ -42,7 +42,6 @@ func Paginate(c *gin.Context) {
 	c.Set("pageInt", pageInt)
 
 	userID := c.Request.URL.Query().Get("userID")
-	// Get("userID")
 	if userID == "" {
 		c.Set("userError", errors.New("userID could not be retrieved"))
 	}
