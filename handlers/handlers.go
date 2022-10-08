@@ -43,10 +43,17 @@ func GetArtist(db *gorm.DB) gin.HandlerFunc {
 func GetArtwork(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
-		var artwork models.Artwork
-		db.Where("id = ?", id).Find(&artwork)
 
-		log.Printf("artwork response, %v", artwork)
+		var artwork models.Searches
+		if err := db.Table("searches").Where("searches.\"ID\" = ?", id).Find(&artwork).Error; err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"message":       err.Error(),
+				"request_param": c.Param("id"),
+			})
+			log.Print(err.Error())
+
+			return
+		}
 
 		c.JSON(http.StatusOK, artwork)
 	}
@@ -244,7 +251,7 @@ func Logout(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
-func Usernames(db *gorm.DB) gin.HandlerFunc {
+func GetUsernames(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var users []models.Users
