@@ -32,7 +32,7 @@ func main() {
 	router.GET("/source/:id", han.GetSource(db))
 
 	router.GET("/search/:term", han.Search(db))
-	router.GET("/usernames", han.Usernames(db))
+	router.GET("/usernames", han.GetUsernames(db))
 
 	router.POST("/sign-up", han.RegisterUser(db))
 	router.POST("/login", han.LoginUser(db))
@@ -44,6 +44,8 @@ func main() {
 	router.POST("likes", han.CheckArtworkLikes(db))
 
 	router.GET("/likedArtwork", m.Paginate, han.LikedArtworkHandler(db))
+
+	router.POST("curations/create", han.CreateCuration(db))
 
 	d := fmt.Sprint(os.Getenv("HOST") + ":" + os.Getenv("PORT"))
 	router.Run(d)
