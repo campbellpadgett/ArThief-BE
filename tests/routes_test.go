@@ -15,9 +15,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupGetRouter(handler gin.HandlerFunc, route string) *gin.Engine {
+func setupGetRouter(handler gin.HandlerFunc, route string, httpTest string) *gin.Engine {
 	r := gin.New()
-	r.GET(route, handler)
+
+	switch httpTest {
+	case "GET":
+		r.GET(route, handler)
+	case "POST":
+		r.POST(route, handler)
+	}
 	r.Use(gin.Recovery())
 
 	return r
@@ -30,8 +36,8 @@ func TestUsernames(t *testing.T) {
 	}
 
 	route := "/usernames"
-	handler := handlers.Usernames(db)
-	router := setupGetRouter(handler, route)
+	handler := handlers.GetUsernames(db)
+	router := setupGetRouter(handler, route, "GET")
 	writer := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, route, nil)
 
@@ -61,7 +67,7 @@ func TestSearch(t *testing.T) {
 
 	route := "/search/:term"
 	handler := handlers.Search(db)
-	router := setupGetRouter(handler, route)
+	router := setupGetRouter(handler, route, "GET")
 	writer := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/search/jacob", nil)
 
@@ -94,7 +100,7 @@ func TestGetEra(t *testing.T) {
 
 	route := "/era/:id"
 	handler := handlers.GetEra(db)
-	router := setupGetRouter(handler, route)
+	router := setupGetRouter(handler, route, "GET")
 	writer := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/era/5", nil)
 	router.ServeHTTP(writer, req)
@@ -122,7 +128,7 @@ func TestGetSource(t *testing.T) {
 
 	route := "/source/:id"
 	handler := handlers.GetSource(db)
-	router := setupGetRouter(handler, route)
+	router := setupGetRouter(handler, route, "GET")
 	writer := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/source/5", nil)
 	router.ServeHTTP(writer, req)
@@ -140,7 +146,6 @@ func TestGetSource(t *testing.T) {
 	}
 
 	assert.Equal(t, "Wilson L. Mead Fund", source.Source_Name)
-	assert.Equal(t, "CHI", source.Abriviation)
 }
 
 func TestGetArtist(t *testing.T) {
@@ -151,7 +156,7 @@ func TestGetArtist(t *testing.T) {
 
 	route := "/artist/:id"
 	handler := handlers.GetArtist(db)
-	router := setupGetRouter(handler, route)
+	router := setupGetRouter(handler, route, "GET")
 	writer := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/artist/5", nil)
 	router.ServeHTTP(writer, req)
@@ -182,7 +187,7 @@ func TestGetArtwork(t *testing.T) {
 
 	route := "/artwork/:id"
 	handler := handlers.GetArtwork(db)
-	router := setupGetRouter(handler, route)
+	router := setupGetRouter(handler, route, "GET")
 	writer := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/artwork/5", nil)
 	router.ServeHTTP(writer, req)
@@ -194,15 +199,14 @@ func TestGetArtwork(t *testing.T) {
 		t.Errorf("[Error] Unable to read writer.Body: %s", err)
 	}
 
-	var artwork models.Artwork
+	var artwork models.Searches
 	if err := json.Unmarshal(data, &artwork); err != nil {
 		t.Errorf("[ERROR] Unable to unmarshal data to artwork: %s", err)
 	}
 
 	assert.Equal(t, "Portrait of the Cock Blomhoff family", artwork.Title)
-	assert.Equal(t, "1817", artwork.Date_of_Release)
-	assert.Equal(t, " Japan", artwork.Artist_Bio)
-	assert.Equal(t, "https://lh6.ggpht.com/VK4zTxsKnaZnfOgNyJsMYtt-wf1aGV8rdpIlYCQs4azxhuo_Go3VXkAKR9INbOS5v5v2bREOnlQolXrmK6dsznV3VCw=s0", artwork.Image)
+	assert.Equal(t, "1817", artwork.DOR)
+	assert.Equal(t, "https://lh6.ggpht.com/VK4zTxsKnaZnfOgNyJsMYtt-wf1aGV8rdpIlYCQs4azxhuo_Go3VXkAKR9INbOS5v5v2bREOnlQolXrmK6dsznV3VCw=s0", artwork.IMG)
 }
 
 func TestGetArtworks(t *testing.T) {
@@ -213,7 +217,7 @@ func TestGetArtworks(t *testing.T) {
 
 	route := "/artworks/"
 	handler := handlers.GetArtworks(db)
-	router := setupGetRouter(handler, route)
+	router := setupGetRouter(handler, route, "GET")
 	writer := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/artworks/?limit=10&last_id=1", nil)
 	router.ServeHTTP(writer, req)
