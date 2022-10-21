@@ -12,7 +12,8 @@ import (
 )
 
 func main() {
-	router := gin.Default()
+	router := gin.New()
+	router.SetTrustedProxies(nil)
 
 	db, origins, err := utils.SetupConfiguration(false)
 	if err != nil {
@@ -44,6 +45,8 @@ func main() {
 	router.POST("likes", han.CheckArtworkLikes(db))
 
 	router.GET("/likedArtwork", m.Paginate, han.LikedArtworkHandler(db))
+
+	router.POST("curations/create", han.CreateCuration(db))
 
 	d := fmt.Sprint(os.Getenv("HOST") + ":" + os.Getenv("PORT"))
 	router.Run(d)
