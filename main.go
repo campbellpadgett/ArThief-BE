@@ -46,8 +46,6 @@ func main() {
 
 	router.GET("/likedArtwork", m.Paginate, han.LikedArtworkHandler(db))
 
-	router.POST("curations/create", han.CreateCuration(db))
-
 	d := fmt.Sprint(os.Getenv("HOST") + ":" + os.Getenv("PORT"))
 	router.Run(d)
 }
