@@ -2,8 +2,10 @@ package tests
 
 import (
 	"AT-BE/handlers"
+	m "AT-BE/middleware"
 	"AT-BE/models"
 	"AT-BE/utils"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -17,6 +19,7 @@ import (
 
 func setupGetRouter(handler gin.HandlerFunc, route string, httpTest string) *gin.Engine {
 	r := gin.New()
+	r.SetTrustedProxies(nil)
 
 	switch httpTest {
 	case "GET":
@@ -27,6 +30,407 @@ func setupGetRouter(handler gin.HandlerFunc, route string, httpTest string) *gin
 	r.Use(gin.Recovery())
 
 	return r
+}
+
+func TestLikedArtworkHandler(t *testing.T) {
+	db, _, err := utils.SetupConfiguration(true)
+	if err != nil {
+		t.Errorf("unable to setup db and env variables: %v", err)
+	}
+
+	router := gin.New()
+	router.SetTrustedProxies(nil)
+
+	// sampleUser ID
+	router.GET("/likedArtwork", m.Paginate, handlers.LikedArtworkHandler(db))
+	writer := httptest.NewRecorder()
+
+	route := "/likedArtwork?page=0&userID=16"
+	req := httptest.NewRequest(http.MethodGet, route, nil)
+	router.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+
+	wb, err := ioutil.ReadAll(writer.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	var jsonData map[string]interface{}
+	if err := json.Unmarshal(wb, &jsonData); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to jsonData: %s", err)
+	}
+
+	fmt.Printf("| jsonData: %+v", jsonData)
+
+	var page, count float64
+	page, count = 10, 2
+
+	assert.True(t, jsonData["page"] == page)
+	assert.True(t, jsonData["count"] == count)
+}
+
+func TestLogout(t *testing.T) {
+	db, _, err := utils.SetupConfiguration(true)
+	if err != nil {
+		t.Errorf("unable to setup db and env variables: %v", err)
+	}
+
+	route := "/login"
+	handler := handlers.LoginUser(db)
+	router := setupGetRouter(handler, route, "POST")
+	writer := httptest.NewRecorder()
+
+	loginReq := utils.ParsedUserRequestData{
+		Email:    "sample@gmail.com",
+		Username: "sampleUser",
+		Password: "sampleUser",
+	}
+
+	marshalledData, err := json.Marshal(loginReq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledData))
+	router.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+
+	route = "/logout"
+	handler = handlers.Logout(db)
+	router = setupGetRouter(handler, route, "POST")
+	writer = httptest.NewRecorder()
+
+	req = httptest.NewRequest(http.MethodPost, route, nil)
+	router.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+
+	wb, err := ioutil.ReadAll(writer.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	var jsonData map[string]interface{}
+	if err := json.Unmarshal(wb, &jsonData); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to jsonData: %s", err)
+	}
+
+	fmt.Printf("jsonData: %+v", jsonData)
+
+	assert.True(t, jsonData["message"] == "successsfully logged out")
+}
+
+func TestUsers(t *testing.T) {
+	db, _, err := utils.SetupConfiguration(true)
+	if err != nil {
+		t.Errorf("unable to setup db and env variables: %v", err)
+	}
+
+	route := "/users"
+	handler := handlers.Users(db)
+	router := setupGetRouter(handler, route, "POST")
+	writer := httptest.NewRecorder()
+
+	// sampleUser ID
+	marshalledData, err := json.Marshal("16")
+	if err != nil {
+		t.Error(err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledData))
+	router.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+
+	wb, err := ioutil.ReadAll(writer.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	var res utils.ParsedUserRequestData
+	if err := json.Unmarshal(wb, &res); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to jsonData: %s", err)
+	}
+
+	assert.True(t, res.Email == "sample@gmail.com")
+	assert.True(t, res.Username == "sampleUser")
+	assert.True(t, res.Password == "")
+}
+
+func TestAuthenticateUser(t *testing.T) {
+	db, _, err := utils.SetupConfiguration(true)
+	if err != nil {
+		t.Errorf("unable to setup db and env variables: %v", err)
+	}
+
+	route := "/login"
+	handler := handlers.LoginUser(db)
+	router := setupGetRouter(handler, route, "POST")
+	writer := httptest.NewRecorder()
+
+	loginReq := utils.ParsedUserRequestData{
+		Email:    "sample@gmail.com",
+		Username: "sampleUser",
+		Password: "sampleUser",
+	}
+
+	marshalledData, err := json.Marshal(loginReq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledData))
+	router.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+
+	route = "/user"
+	handler = handlers.AuthenticateUser(db)
+	router = setupGetRouter(handler, route, "GET")
+
+	newReq := httptest.NewRequest(http.MethodPost, route, nil)
+	router.ServeHTTP(writer, newReq)
+
+	assert.Equal(t, 200, writer.Code)
+}
+
+func TestLoginUser(t *testing.T) {
+	db, _, err := utils.SetupConfiguration(true)
+	if err != nil {
+		t.Errorf("unable to setup db and env variables: %v", err)
+	}
+
+	route := "/login"
+	handler := handlers.LoginUser(db)
+	router := setupGetRouter(handler, route, "POST")
+	writer := httptest.NewRecorder()
+
+	loginReq := utils.ParsedUserRequestData{
+		Email:    "sample@gmail.com",
+		Username: "sampleUser",
+		Password: "sampleUser",
+	}
+
+	marshalledData, err := json.Marshal(loginReq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledData))
+	router.ServeHTTP(writer, req)
+
+	wb, err := ioutil.ReadAll(writer.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	assert.Equal(t, 200, writer.Code)
+
+	var res utils.ParsedUserRequestData
+	if err := json.Unmarshal(wb, &res); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to jsonData: %s", err)
+	}
+
+	assert.True(t, res.Email == "sample@gmail.com")
+	assert.True(t, res.Username == "sampleUser")
+	assert.True(t, res.Password == "")
+}
+
+func TestRegisterUser(t *testing.T) {
+	db, _, err := utils.SetupConfiguration(true)
+	if err != nil {
+		t.Errorf("unable to setup db and env variables: %v", err)
+	}
+
+	route := "/sign-up"
+	handler := handlers.RegisterUser(db)
+	router := setupGetRouter(handler, route, "POST")
+	writer := httptest.NewRecorder()
+
+	// type ParsedRequestData map[string]string
+	signUpReq := utils.ParsedUserRequestData{
+		Email:    "test@test.com",
+		Username: "tester123",
+		Password: "testerPassword",
+	}
+
+	marshalledData, err := json.Marshal(signUpReq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledData))
+	router.ServeHTTP(writer, req)
+
+	wb, err := ioutil.ReadAll(writer.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	assert.Equal(t, 201, writer.Code)
+
+	var res utils.ParsedUserRequestData
+	if err := json.Unmarshal(wb, &res); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to jsonData: %s", err)
+	}
+
+	assert.True(t, res.Email == "test@test.com")
+	assert.True(t, res.Username == "tester123")
+	assert.True(t, res.Password == "")
+
+	var u models.Users
+	db.Find(&u, "email = ?", res.Email)
+	db.Unscoped().Delete(&u)
+}
+
+// tests fetching a true like and a nil like
+func TestCheckArtworkLikes(t *testing.T) {
+	db, _, err := utils.SetupConfiguration(true)
+	if err != nil {
+		t.Errorf("unable to setup db and env variables: %v", err)
+	}
+
+	route := "/likes"
+	handler := handlers.CheckArtworkLikes(db)
+	router := setupGetRouter(handler, route, "POST")
+	writer := httptest.NewRecorder()
+
+	likeData := models.LikeReqData{
+		ItemID:     "1015",
+		UserID:     2,
+		LikeStatus: true,
+	}
+
+	marshalledData, err := json.Marshal(likeData)
+	if err != nil {
+		t.Error(err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledData))
+	router.ServeHTTP(writer, req)
+
+	wb, err := ioutil.ReadAll(writer.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	assert.Equal(t, 202, writer.Code)
+
+	var jsonData map[string]interface{}
+	if err := json.Unmarshal(wb, &jsonData); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to jsonData: %s", err)
+	}
+
+	assert.Equal(t, jsonData["liked"], true)
+	assert.Equal(t, jsonData["exist"], true)
+
+	// now we will test a false instance
+	likeData = models.LikeReqData{
+		ItemID:     "300",
+		UserID:     1,
+		LikeStatus: false,
+	}
+
+	marshalledDataFalse, err := json.Marshal(likeData)
+	if err != nil {
+		t.Error(err)
+	}
+
+	newWriter := httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledDataFalse))
+	router.ServeHTTP(newWriter, req)
+
+	nwb, err := ioutil.ReadAll(newWriter.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	var jsonDataFalse map[string]interface{}
+	if err := json.Unmarshal(nwb, &jsonDataFalse); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to jsonDataFalse: %s", err)
+	}
+
+	assert.Equal(t, jsonDataFalse["data"], nil)
+	assert.Equal(t, jsonDataFalse["liked"], false)
+	assert.Equal(t, jsonDataFalse["exist"], false)
+}
+
+// test will create a new instance of a like, then remove that like, then delete the instance
+func TestArtworkLike(t *testing.T) {
+	db, _, err := utils.SetupConfiguration(true)
+	if err != nil {
+		t.Errorf("unable to setup db and env variables: %v", err)
+	}
+
+	route := "/like"
+	handler := handlers.ArtworkLike(db)
+	router := setupGetRouter(handler, route, "POST")
+	writer := httptest.NewRecorder()
+
+	// inital like
+	likeReq := models.LikeReqData{
+		UserID:     2,
+		ItemID:     "1000",
+		LikeStatus: true,
+	}
+
+	marshalledData, err := json.Marshal(likeReq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledData))
+	router.ServeHTTP(writer, req)
+
+	wb, err := ioutil.ReadAll(writer.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	var like models.ArtworkLikes
+	if err := json.Unmarshal(wb, &like); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to LikeReqData: %s", err)
+	}
+
+	assert.Equal(t, 201, writer.Code)
+	assert.True(t, like.Like)
+
+	// now to test unlike, IDforDeletion will be used for deleting at the end
+	IDforDeletion := like.ID
+	unlikeReq := models.LikeReqData{
+		UserID:     2,
+		ItemID:     "1000",
+		LikeStatus: false,
+	}
+
+	marshalledDataUnlike, err := json.Marshal(unlikeReq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	newWriter := httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledDataUnlike))
+	router.ServeHTTP(newWriter, req)
+
+	nwb, err := ioutil.ReadAll(newWriter.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	var jsonData map[string]interface{}
+	if err := json.Unmarshal(nwb, &jsonData); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to jsonData: %s", err)
+	}
+
+	assert.Equal(t, 200, newWriter.Code)
+	assert.True(t, jsonData["message"] == "successfully updated")
+
+	// delete instance
+	var a models.ArtworkLikes
+	db.Find(&a, "id = ?", IDforDeletion)
+	db.Unscoped().Delete(&a)
 }
 
 func TestUsernames(t *testing.T) {
@@ -55,7 +459,6 @@ func TestUsernames(t *testing.T) {
 		t.Errorf("[ERROR] Unable to unmarshal data to usernames: %s", err)
 	}
 
-	fmt.Println(usernames)
 	assert.True(t, true, len(usernames) >= 1)
 }
 
@@ -88,8 +491,6 @@ func TestSearch(t *testing.T) {
 	assert.True(t, true, len(searches) > 1)
 	assert.Nil(t, nil, searches[0].IMG_S)
 	assert.True(t, true, searches[0].ID == "22")
-
-	// fmt.Printf("%v+", searches)
 }
 
 func TestGetEra(t *testing.T) {
