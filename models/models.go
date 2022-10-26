@@ -95,6 +95,9 @@ func (Users) TableName() string {
 	return "users"
 }
 
+// Curations are created when a user supplies thier userID and a name. When adding
+// artwork, we persist the artworkID to CurationArtwork table. We join the tables
+// together, along with the searches table and write the artwork objects to Curations.Artworks
 type Curations struct {
 	gorm.Model
 	User_ID  int       `json:"user_id"`
@@ -108,7 +111,7 @@ func (Curations) TableName() string {
 
 type CurationLikes struct {
 	gorm.Model
-	Curation_ID int  `json:"curation_id"`
+	Curation_ID uint `json:"curation_id"`
 	User_ID     int  `json:"user_id"`
 	Like        bool `json:"like"`
 }

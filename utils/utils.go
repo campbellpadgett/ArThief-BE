@@ -13,17 +13,25 @@ import (
 	"gorm.io/gorm"
 )
 
-type ParsedRequestData map[string]string
+type ParsedUserRequestData struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Username string `json:"username"`
+}
 
-func ParseFormData(reqBody io.ReadCloser) (ParsedRequestData, error) {
+func ParseFormData(reqBody io.ReadCloser) (ParsedUserRequestData, error) {
 	data, err := ioutil.ReadAll(reqBody)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to read request.body: ")
+		return ParsedUserRequestData{}, errors.Wrap(err, "unable to read request.body: ")
 	}
 
-	var reqData ParsedRequestData
+	var reqData ParsedUserRequestData
 	if err := json.Unmarshal(data, &reqData); err != nil {
-		return nil, errors.Wrap(err, "unable to unmarshal data: ")
+		return ParsedUserRequestData{}, errors.Wrap(err, "unable to unmarshal data: ")
+	}
+
+	if len(reqData.Password) <= 7 {
+		return ParsedUserRequestData{}, errors.New("Password length is too short, must be 8 or more characters")
 	}
 
 	return reqData, nil

@@ -112,7 +112,7 @@ func RegisterUser(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		pwd := reqData["password"]
+		pwd := reqData.Password
 		password, pwdErr := bcrypt.GenerateFromPassword([]byte(pwd), 14)
 		if pwdErr != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -124,8 +124,8 @@ func RegisterUser(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		user := models.Users{
-			Username: reqData["username"],
-			Email:    reqData["email"],
+			Username: reqData.Username,
+			Email:    reqData.Email,
 			Password: password,
 		}
 
@@ -151,7 +151,7 @@ func LoginUser(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		var user models.Users
-		un, pwd := reqData["username"], reqData["password"]
+		un, pwd := reqData.Username, reqData.Password
 		db.Find(&user, "username = ?", un)
 		if user.Username == "" {
 			c.Writer.Header().Add("error", "User could not be found through username")
@@ -347,7 +347,7 @@ func ArtworkLike(db *gorm.DB) gin.HandlerFunc {
 		err := reqData.ProcessReq(c.Request)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": err.Error(),
+				"errorMessage": err.Error(),
 			})
 			log.Print(err.Error())
 
@@ -357,7 +357,7 @@ func ArtworkLike(db *gorm.DB) gin.HandlerFunc {
 		iID, aErr := strconv.Atoi(reqData.ItemID)
 		if aErr != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"message":         aErr.Error(),
+				"errorMessage":    aErr.Error(),
 				"reData":          reqData.ToString(),
 				"ArtworkID":       reqData.ItemID,
 				"post-conversion": iID,
@@ -371,7 +371,7 @@ func ArtworkLike(db *gorm.DB) gin.HandlerFunc {
 		exists, err := likeExists(db, &artworkLike, reqData.UserID, iID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": err.Error(),
+				"errorMessage": err.Error(),
 			})
 			log.Print(err)
 
@@ -396,7 +396,7 @@ func ArtworkLike(db *gorm.DB) gin.HandlerFunc {
 			result := db.Create(&newArtworkLike)
 			if result.Error != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
-					"message": result.Error,
+					"errorMessage": result.Error,
 				})
 				log.Print(result.Error)
 
