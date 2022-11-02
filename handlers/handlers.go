@@ -535,13 +535,6 @@ func NewCurationHandler(db *gorm.DB) gin.HandlerFunc {
 			}
 		}
 
-		// checks if curation artwork already exists (artowkrID and order being similar to what is requested)
-		// have mthod for CurationArtworks
-		// then check here
-		// then test new setup
-		// then test if changes can occur to already existing tables, otherwise we will have to frop production and set it back up
-		// if all goes well, make similar changes for likeExists and make it a method, update route
-
 		newCuration := models.Curations{
 			User_ID: CurReq.UserID,
 			Name:    CurReq.Name,
