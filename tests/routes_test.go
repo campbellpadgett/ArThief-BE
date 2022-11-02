@@ -32,6 +32,50 @@ func setupGetRouter(handler gin.HandlerFunc, route string, httpTest string) *gin
 	return r
 }
 
+func TestNewCuration(t *testing.T) {
+	db, _, err := utils.SetupConfiguration(true)
+	if err != nil {
+		t.Errorf("unable to setup db and env variables: %v", err)
+	}
+
+	route := "/curation/new"
+	handler := handlers.NewCurationHandler(db)
+	router := setupGetRouter(handler, route, "POST")
+	writer := httptest.NewRecorder()
+
+	curReq := models.NewCurationReq{
+		Name:      "-*-test curation cpadgett-*-",
+		UserID:    16,
+		ArtworkID: 1015,
+	}
+
+	marshalledData, err := json.Marshal(curReq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledData))
+	router.ServeHTTP(writer, req)
+
+	assert.Equal(t, 201, writer.Code)
+
+	wb, err := ioutil.ReadAll(writer.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	var jsonData map[string]interface{}
+	if err := json.Unmarshal(wb, &jsonData); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to jsonData: %s", err)
+	}
+
+	assert.True(t, jsonData["message"] == "success")
+
+	var c models.Curations
+	db.Find(&c, "name = ?", curReq.Name)
+	db.Unscoped().Delete(&c)
+}
+
 func TestLikedArtworkHandler(t *testing.T) {
 	db, _, err := utils.SetupConfiguration(true)
 	if err != nil {
@@ -41,15 +85,15 @@ func TestLikedArtworkHandler(t *testing.T) {
 	router := gin.New()
 	router.SetTrustedProxies(nil)
 
-	// sampleUser ID
 	router.GET("/likedArtwork", m.Paginate, handlers.LikedArtworkHandler(db))
 	writer := httptest.NewRecorder()
 
+	// sampleUser ID
 	route := "/likedArtwork?page=0&userID=16"
 	req := httptest.NewRequest(http.MethodGet, route, nil)
 	router.ServeHTTP(writer, req)
 
-	assert.Equal(t, 200, writer.Code)
+	assert.Equal(t, 201, writer.Code)
 
 	wb, err := ioutil.ReadAll(writer.Body)
 	if err != nil {
@@ -68,6 +112,7 @@ func TestLikedArtworkHandler(t *testing.T) {
 
 	assert.True(t, jsonData["page"] == page)
 	assert.True(t, jsonData["count"] == count)
+
 }
 
 func TestLogout(t *testing.T) {

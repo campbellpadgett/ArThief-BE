@@ -494,3 +494,76 @@ func LikedArtworkHandler(db *gorm.DB) gin.HandlerFunc {
 		c.JSON(http.StatusOK, likedList)
 	}
 }
+
+func NewCurationHandler(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var CurReq models.NewCurationReq
+		err := CurReq.ProcessReq(c.Request)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": errors.Wrap(err, "unable to read request.body").Error(),
+			})
+			log.Print(err)
+
+			return
+		}
+
+		curationAW := models.CurationArtwork{
+			Artwork_ID: CurReq.ArtworkID,
+			Order:      1,
+		}
+
+		exists, err := curationAW.AlreadyExists(db)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": errors.Wrap(err, "curationAW already exists").Error(),
+			})
+			log.Print(err)
+
+			return
+		}
+
+		if !exists {
+			result := db.Create(&curationAW)
+			if result.Error != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"errorMessage": result.Error,
+				})
+				log.Print(result.Error)
+
+				return
+			}
+		}
+
+		// checks if curation artwork already exists (artowkrID and order being similar to what is requested)
+		// have mthod for CurationArtworks
+		// then check here
+		// then test new setup
+		// then test if changes can occur to already existing tables, otherwise we will have to frop production and set it back up
+		// if all goes well, make similar changes for likeExists and make it a method, update route
+
+		newCuration := models.Curations{
+			User_ID: CurReq.UserID,
+			Name:    CurReq.Name,
+			Artworks: []uint{
+				curationAW.ID,
+			},
+		}
+
+		result := db.Create(&newCuration)
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"errorMessage": result.Error,
+			})
+			log.Print(result.Error)
+
+			return
+
+		} else {
+			c.JSON(http.StatusCreated, gin.H{
+				"message": "success",
+			})
+		}
+
+	}
+}

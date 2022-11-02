@@ -100,13 +100,39 @@ func (Users) TableName() string {
 // together, along with the searches table and write the artwork objects to Curations.Artworks
 type Curations struct {
 	gorm.Model
-	User_ID  int       `json:"user_id"`
-	Name     string    `json:"name"`
-	Artworks []Artwork `json:"artworks" gorm:"many2many:curation_artwork"`
+	User_ID  int    `json:"user_id"`
+	Name     string `json:"name"`
+	Artworks []uint `json:"curation_artwork_ids" gorm:"type:bigint"`
 }
 
 func (Curations) TableName() string {
 	return "curations"
+}
+
+type NewCurationReq struct {
+	Name   string `json:"name"`
+	UserID int    `json:"userID"`
+	// The ID of the first artwork in the curation
+	ArtworkID int `json:"artworkID"`
+}
+
+// Returns string of NewCurationReq
+func (n *NewCurationReq) ToString() string {
+	return fmt.Sprintf("Name: %v, UID: %v, AID: %v", n.Name, n.UserID, n.ArtworkID)
+}
+
+// Takes in request and processes the body for an instance of NewCurationReq
+func (n *NewCurationReq) ProcessReq(req *http.Request) error {
+	data, ioErr := ioutil.ReadAll(req.Body)
+	if ioErr != nil {
+		return ioErr
+	}
+
+	if mErr := json.Unmarshal(data, &n); mErr != nil {
+		return mErr
+	}
+
+	return nil
 }
 
 type CurationLikes struct {
@@ -122,13 +148,26 @@ func (CurationLikes) TableName() string {
 
 type CurationArtwork struct {
 	gorm.Model
-	Curation_ID int `json:"curation_id"`
-	Artwork_ID  int `json:"user_id"`
-	Order       int `json:"order"`
+	Artwork_ID int `json:"artwork_id"`
+	Order      int `json:"order"`
 }
 
 func (CurationArtwork) TableName() string {
 	return "curation_artwork"
+}
+
+// Checks if there is an instance of the given ArtworkID and Order in the DB.
+// If false, create a new instance in DB
+func (ca *CurationArtwork) AlreadyExists(db *gorm.DB) (bool, error) {
+	result := db.First(&ca)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return false, nil
+		} else {
+			return false, result.Error
+		}
+	}
+	return true, nil
 }
 
 type ArtworkLikes struct {
