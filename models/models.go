@@ -135,6 +135,54 @@ func (n *NewCurationReq) ProcessReq(req *http.Request) error {
 	return nil
 }
 
+type UpdateCurName struct {
+	ID   int
+	Name string
+}
+
+// Returns string of UpdateCurName
+func (u *UpdateCurName) ToString() string {
+	return fmt.Sprintf("Name: %v, ID: %v", u.Name, u.ID)
+}
+
+// Takes in request and processes the body for an instance of UpdateCurName
+func (u *UpdateCurName) ProcessReq(req *http.Request) error {
+	data, ioErr := ioutil.ReadAll(req.Body)
+	if ioErr != nil {
+		return ioErr
+	}
+
+	if mErr := json.Unmarshal(data, &u); mErr != nil {
+		return mErr
+	}
+
+	return nil
+}
+
+type UpdateCurOrder struct {
+	ID     int
+	Orders int
+}
+
+// Returns string of UpdateCurOrder
+func (u *UpdateCurOrder) ToString() string {
+	return fmt.Sprintf("Orders: %v, ID: %v", u.Orders, u.ID)
+}
+
+// Takes in request and processes the body for an instance of UpdateCurOrder
+func (u *UpdateCurOrder) ProcessReq(req *http.Request) error {
+	data, ioErr := ioutil.ReadAll(req.Body)
+	if ioErr != nil {
+		return ioErr
+	}
+
+	if mErr := json.Unmarshal(data, &u); mErr != nil {
+		return mErr
+	}
+
+	return nil
+}
+
 type CurationLikes struct {
 	gorm.Model
 	Curation_ID uint `json:"curation_id"`

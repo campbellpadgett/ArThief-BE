@@ -555,8 +555,68 @@ func NewCurationHandler(db *gorm.DB) gin.HandlerFunc {
 		} else {
 			c.JSON(http.StatusCreated, gin.H{
 				"message": "success",
+				"ID":      newCuration.ID,
 			})
 		}
 
+	}
+}
+
+func DeleteCurationHandler(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ID int
+
+		data, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": errors.Wrap(err, "unable to read request.body").Error(),
+			})
+			log.Print(err)
+
+			return
+		}
+
+		if err := json.Unmarshal(data, &ID); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": errors.Wrap(err, "unable to read request.body").Error(),
+			})
+			log.Print(err)
+
+			return
+		}
+
+		var cur models.Curations
+		db.Find(&cur, "ID = ?", ID)
+		db.Unscoped().Delete(&cur)
+
+		c.JSON(http.StatusAccepted, gin.H{
+			"message": "curation deleted",
+		})
+	}
+}
+
+func UpdateCurationNameHandler(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var u models.UpdateCurName
+		err := u.ProcessReq(c.Request)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": errors.Wrap(err, "unable to read request.body").Error(),
+			})
+			log.Print(err)
+
+			return
+		}
+
+		var cur models.Curations
+		db.Find(&cur, "ID = ?", u.ID)
+
+		cur.Name = u.Name
+		db.Save(&cur)
+
+		c.JSON(http.StatusAccepted, gin.H{
+			"message":  "curation name updated",
+			"new name": u.Name,
+		})
 	}
 }

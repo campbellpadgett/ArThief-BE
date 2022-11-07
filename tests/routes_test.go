@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// POST and GET methods currently available
 func setupGetRouter(handler gin.HandlerFunc, route string, httpTest string) *gin.Engine {
 	r := gin.New()
 	r.SetTrustedProxies(nil)
@@ -32,7 +33,85 @@ func setupGetRouter(handler gin.HandlerFunc, route string, httpTest string) *gin
 	return r
 }
 
-func TestNewCuration(t *testing.T) {
+func TestUpdateCurationName(t *testing.T) {
+	db, _, err := utils.SetupConfiguration(true)
+	if err != nil {
+		t.Errorf("unable to setup db and env variables: %v", err)
+	}
+
+	route := "/curation/new"
+	handler := handlers.NewCurationHandler(db)
+	router := setupGetRouter(handler, route, "POST")
+	writer := httptest.NewRecorder()
+
+	curReq := models.NewCurationReq{
+		Name:      "-*-test curation cpadgett-*-",
+		UserID:    16,
+		ArtworkID: 1015,
+	}
+
+	marshalledData, err := json.Marshal(curReq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledData))
+	router.ServeHTTP(writer, req)
+
+	assert.Equal(t, 201, writer.Code)
+
+	wb, err := ioutil.ReadAll(writer.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	type JsonData struct {
+		ID      int
+		Message string
+	}
+
+	var jsonData JsonData
+	if err := json.Unmarshal(wb, &jsonData); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to jsonData: %s", err)
+	}
+
+	assert.True(t, jsonData.Message == "success")
+
+	route = "/curation/update"
+	handler = handlers.UpdateCurationNameHandler(db)
+	router = setupGetRouter(handler, route, "POST")
+	writer = httptest.NewRecorder()
+
+	upd := models.UpdateCurName{
+		ID:   jsonData.ID,
+		Name: curReq.Name,
+	}
+
+	marshalledData, err = json.Marshal(upd)
+	if err != nil {
+		t.Error(err)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledData))
+	router.ServeHTTP(writer, req)
+
+	assert.Equal(t, 202, writer.Code)
+
+	wb, err = ioutil.ReadAll(writer.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	var res map[string]interface{}
+	if err := json.Unmarshal(wb, &res); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to res: %s", err)
+	}
+
+	assert.True(t, res["message"] == "curation name updated")
+	assert.True(t, res["new name"] == upd.Name)
+}
+
+func TestNewAndDeleteCuration(t *testing.T) {
 	db, _, err := utils.SetupConfiguration(true)
 	if err != nil {
 		t.Errorf("unable to setup db and env variables: %v", err)
@@ -71,9 +150,32 @@ func TestNewCuration(t *testing.T) {
 
 	assert.True(t, jsonData["message"] == "success")
 
-	var c models.Curations
-	db.Find(&c, "name = ?", curReq.Name)
-	db.Unscoped().Delete(&c)
+	route = "/curation/delete"
+	handler = handlers.DeleteCurationHandler(db)
+	router = setupGetRouter(handler, route, "POST")
+	writer = httptest.NewRecorder()
+
+	marshalledData, err = json.Marshal(jsonData["ID"])
+	if err != nil {
+		t.Error(err)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, route, bytes.NewReader(marshalledData))
+	router.ServeHTTP(writer, req)
+
+	assert.Equal(t, 202, writer.Code)
+
+	wb, err = ioutil.ReadAll(writer.Body)
+	if err != nil {
+		t.Errorf("[Error] Unable to read writer.Body: %s", err)
+	}
+
+	var msg map[string]string
+	if err := json.Unmarshal(wb, &msg); err != nil {
+		t.Errorf("[ERROR] Unable to unmarshal data to msg: %s", err)
+	}
+
+	assert.True(t, msg["message"] == "curation deleted")
 }
 
 func TestLikedArtworkHandler(t *testing.T) {
